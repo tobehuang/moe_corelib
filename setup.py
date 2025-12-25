@@ -186,9 +186,26 @@ include_path = []
 include_path.append("/usr/include/x86_64-linux-gnu/")
 include_path.append(os.path.join(base_dir, '3rdparty/cutlass/include/'))
 include_path.append(os.path.join(base_dir, "3rdparty/cutlass/tools/util/include/"))
+include_path.append(os.path.join(base_dir, "3rdparty/tensorrt/include/tensorrt/include/"))
 include_path.append(os.path.join(base_dir, 'cpp/'))
 include_path.append(os.path.join(base_dir, 'cpp/tensorrt_llm/cutlass_extensions/include/'))
-extra_link_args = ["-L/usr/lib/x86_64-linux-gnu/", "-lnvinfer"]
+#extra_link_args = ["-L/usr/lib/x86_64-linux-gnu/", "-lnvinfer"]
+
+# 计算TensorRT库路径
+current_dir = os.path.dirname(os.path.abspath(__file__))
+tensorrt_lib_dir = os.path.join(current_dir, "3rdparty", "tensorrt", "lib", "tensorrt")
+
+# 检查库是否存在
+lib_path = os.path.join(tensorrt_lib_dir, "libnvinfer.so.10.9.0")
+if os.path.exists(lib_path):
+    print(f"find libnvinfer.so, path:{lib_path}")
+    extra_link_args = [
+        f"{tensorrt_lib_dir}/libnvinfer.so.10.9.0",  # 直接指定库文件
+        f"-Wl,-rpath,{tensorrt_lib_dir}",
+    ]
+else:
+    print(f"not find libnvinfer.so, in path:{lib_path}")
+    extra_link_args = ["-L/usr/lib/x86_64-linux-gnu/", "-lnvinfer"] # 回退到系统库
 
 libraries = ["cuda"]
 th_moe_extension = CUDAExtension(
